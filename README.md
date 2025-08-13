@@ -11,6 +11,7 @@ A fast and efficient C++ program to calculate prime numbers using the Sieve of E
 - **Modern C++**: Written in C++17 with clean, maintainable code
 - **CMake Build System**: Easy to build and configure
 - **Proper Header Organization**: Clean separation of interface and implementation
+- **Version Control Ready**: Includes .gitignore for clean repository management
 
 ## Algorithm
 
@@ -95,6 +96,7 @@ ctest --output-on-failure
 prime-number-calc/
 ├── CMakeLists.txt              # Main CMake configuration
 ├── README.md                   # This file
+├── .gitignore                  # Git ignore rules for build artifacts
 ├── build.sh                    # Build script
 ├── include/
 │   └── prime_calculator.h     # Header file with class declarations
@@ -114,6 +116,18 @@ The project follows modern C++ best practices:
 - **Implementation Files** (`src/`): Contain the actual implementation
 - **Separation of Concerns**: Main function is separate from class implementation
 - **Reusable Library**: PrimeCalculator class can be used in other projects
+
+## Version Control
+
+The project includes a comprehensive `.gitignore` file that excludes:
+- Build directories (`build/`, `out/`, `cmake-build-*/`)
+- Compiled object files and libraries
+- CMake generated files
+- IDE and editor files
+- OS generated files
+- Temporary and backup files
+
+This ensures that only source code and configuration files are tracked, keeping the repository clean and lightweight.
 
 ## Performance
 
