@@ -88,16 +88,46 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Check Windows environment
+      shell: powershell
+      run: |
+        Write-Host "=== Windows Environment Check ==="
+        Write-Host "CMake version:"
+        cmake --version
+        Write-Host ""
+        Write-Host "Available Visual Studio installations:"
+        Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.Name }
+        Write-Host ""
+        Write-Host "Current directory: $(Get-Location)"
+        Write-Host "Available tools:"
+        Get-Command cmake, git, cl | ForEach-Object { Write-Host $_.Name }
+        Write-Host "================================"
+
     - name: Install Google Test (Windows)
       shell: powershell
       run: |
         # Install vcpkg if not available
         if (-not (Test-Path "C:\vcpkg")) {
+          Write-Host "Installing vcpkg..."
           git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
           C:\vcpkg\bootstrap-vcpkg.bat
+        } else {
+          Write-Host "vcpkg already installed at C:\vcpkg"
         }
+        
+        Write-Host "Installing Google Test..."
         C:\vcpkg\vcpkg install googletest:x64-windows
+        
+        Write-Host "Integrating vcpkg..."
         C:\vcpkg\vcpkg integrate install
+        
+        Write-Host "Checking if Google Test is available..."
+        if (Test-Path "C:\vcpkg\installed\x64-windows\include\gtest") {
+          Write-Host "Google Test installed successfully"
+        } else {
+          Write-Host "Google Test installation failed"
+          exit 1
+        }
 
     - name: Set up build environment
       shell: powershell
@@ -107,12 +137,13 @@ jobs:
 
     - name: Configure with CMake
       shell: powershell
-      env:
-        CMAKE_TOOLCHAIN_FILE: C:\vcpkg\scripts\buildsystems\vcpkg.cmake
       run: |
         cd build
         # Use default generator which should work on Windows
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=$env:CMAKE_TOOLCHAIN_FILE
+        # Set the toolchain file path directly
+        $toolchain = "C:\vcpkg\scripts\buildsystems\vcpkg.cmake"
+        Write-Host "Using toolchain file: $toolchain"
+        cmake .. -DCMAKE_TOOLCHAIN_FILE="$toolchain"
 
     - name: Build project
       shell: powershell
@@ -133,8 +164,8 @@ jobs:
         path: |
           build/bin/Release/prime_calculator.exe
           build/bin/Release/prime_calculator_test.exe
-          build/bin/prime_calculator.exe
-          build/bin/prime_calculator_test.exe
+          build/bin/Release/prime_calculator.exe
+          build/bin/Release/prime_calculator_test.exe
         retention-days: 30
 
     - name: Upload test artifacts
@@ -143,13 +174,13 @@ jobs:
         name: prime-calculator-test-windows-latest-msvc
         path: |
           build/bin/Release/prime_calculator_test.exe
-          build/bin/prime_calculator_test.exe
+          build/bin/Release/prime_calculator_test.exe
         retention-days: 30
 
   build-summary:
     needs: [build-linux-macos, build-windows]
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
