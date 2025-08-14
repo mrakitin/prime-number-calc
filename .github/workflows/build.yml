@@ -211,6 +211,15 @@ jobs:
       run: |
         cd build
         cmake --build . --config Release
+        
+        # Debug: Show the actual output directory structure
+        Write-Host "=== Build Output Directory Structure ==="
+        Write-Host "Current directory: $(Get-Location)"
+        Write-Host "bin directory contents:"
+        if (Test-Path "bin") { Get-ChildItem -Recurse "bin" | Format-Table -AutoSize }
+        Write-Host "Release directory contents:"
+        if (Test-Path "Release") { Get-ChildItem -Recurse "Release" | Format-Table -AutoSize }
+        Write-Host "======================================"
 
     - name: Run tests
       shell: powershell
@@ -235,6 +244,7 @@ jobs:
       with:
         name: prime-calculator-windows-latest-msvc
         path: |
+          build/bin/prime_calculator.exe
           build/bin/Release/prime_calculator.exe
         retention-days: 30
 
@@ -244,6 +254,7 @@ jobs:
       with:
         name: prime-calculator-test-windows-latest-msvc
         path: |
+          build/bin/prime_calculator_test.exe
           build/bin/Release/prime_calculator_test.exe
         retention-days: 30
 
