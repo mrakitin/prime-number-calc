@@ -1,5 +1,7 @@
 # Prime Number Calculator
 
+[![Build and Test](https://github.com/mrakitin/prime-number-calc/actions/workflows/build.yml/badge.svg)](https://github.com/mrakitin/prime-number-calc/actions/workflows/build.yml)
+
 A fast and efficient C++ program to calculate prime numbers using the Sieve of Eratosthenes algorithm.
 
 ## Features
@@ -12,6 +14,7 @@ A fast and efficient C++ program to calculate prime numbers using the Sieve of E
 - **CMake Build System**: Easy to build and configure
 - **Proper Header Organization**: Clean separation of interface and implementation
 - **Version Control Ready**: Includes .gitignore for clean repository management
+- **CI/CD Pipeline**: Automated builds and tests with GitHub Actions
 
 ## Algorithm
 
@@ -90,10 +93,47 @@ ctest --output-on-failure
 ./build/bin/prime_calculator_test
 ```
 
+## Continuous Integration
+
+This project uses **GitHub Actions** for automated building, testing, and artifact distribution.
+
+### 🚀 **Automated Builds**
+
+Every push to `main` or `develop` branches, and every pull request, automatically triggers:
+
+- **Build and Test** on multiple platforms:
+  - Ubuntu (GCC & Clang)
+  - macOS (Clang)
+  - Windows (MSVC)
+
+- **Artifact Upload**: Built binaries are uploaded as GitHub Actions artifacts
+- **Test Verification**: All tests must pass on all platforms
+
+### 📦 **Downloading Build Artifacts**
+
+1. Go to the **Actions** tab in this repository
+2. Click on any successful workflow run
+3. Scroll down to **Artifacts**
+4. Download the appropriate artifact for your platform:
+   - `prime-calculator-ubuntu-latest-gcc` - Linux GCC build
+   - `prime-calculator-ubuntu-latest-clang` - Linux Clang build
+   - `prime-calculator-macos-latest-clang` - macOS build
+   - `prime-calculator-windows-latest-msvc` - Windows build
+
+### 🔧 **Manual Workflow Trigger**
+
+You can manually trigger builds by:
+1. Going to **Actions** → **Build and Test**
+2. Clicking **Run workflow**
+3. Selecting your branch and clicking **Run workflow**
+
 ## Project Structure
 
 ```
 prime-number-calc/
+├── .github/
+│   └── workflows/
+│       └── build.yml          # GitHub Actions CI/CD workflow
 ├── CMakeLists.txt              # Main CMake configuration
 ├── README.md                   # This file
 ├── .gitignore                  # Git ignore rules for build artifacts
@@ -157,6 +197,8 @@ The program includes comprehensive error handling:
 5. Ensure all tests pass
 6. Submit a pull request
 
+**Note**: All pull requests automatically trigger the CI/CD pipeline. Make sure your code builds and tests pass on all supported platforms.
+
 ## License
 
 This project is open source and available under the MIT License.
@@ -170,3 +212,4 @@ Created as a demonstration of efficient prime number calculation algorithms in C
 - **Sieve of Eratosthenes**: Ancient Greek mathematician (276-194 BC)
 - **Google Test**: Excellent C++ testing framework
 - **CMake**: Powerful build system generator
+- **GitHub Actions**: Automated CI/CD platform
