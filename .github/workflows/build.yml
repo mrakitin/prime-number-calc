@@ -88,6 +88,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install Google Test (Windows)
+      shell: powershell
+      run: |
+        # Install vcpkg if not available
+        if (-not (Test-Path "C:\vcpkg")) {
+          git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat
+        }
+        C:\vcpkg\vcpkg install googletest:x64-windows
+        C:\vcpkg\vcpkg integrate install
+
     - name: Set up build environment
       shell: powershell
       run: |
@@ -96,9 +107,12 @@ jobs:
 
     - name: Configure with CMake
       shell: powershell
+      env:
+        CMAKE_TOOLCHAIN_FILE: C:\vcpkg\scripts\buildsystems\vcpkg.cmake
       run: |
         cd build
-        cmake .. -G "Visual Studio 16 2019" -A x64
+        # Use default generator which should work on Windows
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=$env:CMAKE_TOOLCHAIN_FILE
 
     - name: Build project
       shell: powershell
@@ -118,6 +132,9 @@ jobs:
         name: prime-calculator-windows-latest-msvc
         path: |
           build/bin/Release/prime_calculator.exe
+          build/bin/Release/prime_calculator_test.exe
+          build/bin/prime_calculator.exe
+          build/bin/prime_calculator_test.exe
         retention-days: 30
 
     - name: Upload test artifacts
@@ -126,12 +143,13 @@ jobs:
         name: prime-calculator-test-windows-latest-msvc
         path: |
           build/bin/Release/prime_calculator_test.exe
+          build/bin/prime_calculator_test.exe
         retention-days: 30
 
   build-summary:
     needs: [build-linux-macos, build-windows]
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
