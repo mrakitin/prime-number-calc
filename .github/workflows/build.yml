@@ -88,20 +88,12 @@ jobs:
         cd build
         ctest --output-on-failure
 
-    - name: Upload binary artifacts
+    - name: Upload all artifacts
       uses: actions/upload-artifact@v4
       with:
         name: prime-calculator-${{ matrix.runs-on }}-${{ matrix.compiler }}-${{ matrix.arch }}
         path: |
           build/bin/prime_calculator*
-        retention-days: 30
-
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: prime-calculator-test-${{ matrix.runs-on }}-${{ matrix.compiler }}-${{ matrix.arch }}
-        path: |
-          build/bin/prime_calculator_test*
         retention-days: 30
 
   build-windows:
@@ -239,21 +231,13 @@ jobs:
         "Tests were skipped due to Google Test unavailability on Windows" | Out-File -FilePath "test-status.txt" -Encoding UTF8
         Write-Host "Created test status file indicating tests were skipped"
 
-    - name: Upload binary artifacts
+    - name: Upload all artifacts
       uses: actions/upload-artifact@v4
       with:
         name: prime-calculator-windows-latest-msvc
         path: |
           build/bin/prime_calculator.exe
           build/bin/Release/prime_calculator.exe
-        retention-days: 30
-
-    - name: Upload test artifacts
-      uses: actions/upload-artifact@v4
-      if: env.SKIP_TESTS != 'true'
-      with:
-        name: prime-calculator-test-windows-latest-msvc
-        path: |
           build/bin/prime_calculator_test.exe
           build/bin/Release/prime_calculator_test.exe
         retention-days: 30
@@ -297,26 +281,30 @@ jobs:
         echo "" >> build-summary.md
         echo "## 📦 Available Artifacts" >> build-summary.md
         echo "" >> build-summary.md
-        echo "### Main Program" >> build-summary.md
-        echo "- `prime-calculator-ubuntu-latest-gcc` - Linux GCC build" >> build-summary.md
-        echo "- `prime-calculator-ubuntu-latest-clang` - Linux Clang build" >> build-summary.md
-        echo "- `prime-calculator-macos-13-clang-x86_64` - macOS Intel build" >> build-summary.md
-        echo "- `prime-calculator-macos-14-clang-arm64` - macOS Apple Silicon build" >> build-summary.md
-        echo "- `prime-calculator-windows-latest-msvc` - Windows build" >> build-summary.md
+        echo "### Complete Builds (Executable + Tests)" >> build-summary.md
+        echo "- `prime-calculator-ubuntu-latest-gcc` - Linux GCC build with tests" >> build-summary.md
+        echo "- `prime-calculator-ubuntu-latest-clang` - Linux Clang build with tests" >> build-summary.md
+        echo "- `prime-calculator-macos-13-clang-x86_64` - macOS Intel build with tests" >> build-summary.md
+        echo "- `prime-calculator-macos-14-clang-arm64` - macOS Apple Silicon build with tests" >> build-summary.md
+        echo "- `prime-calculator-windows-latest-msvc` - Windows build with tests (if available)" >> build-summary.md
         echo "" >> build-summary.md
-        echo "### Test Suite" >> build-summary.md
-        echo "- `prime-calculator-test-ubuntu-latest-gcc` - Linux GCC tests" >> build-summary.md
-        echo "- `prime-calculator-test-ubuntu-latest-clang` - Linux Clang tests" >> build-summary.md
-        echo "- `prime-calculator-test-macos-13-clang-x86_64` - macOS Intel tests" >> build-summary.md
-        echo "- `prime-calculator-test-macos-14-clang-arm64` - macOS Apple Silicon tests" >> build-summary.md
-        echo "- `prime-calculator-test-windows-latest-msvc` - Windows tests (if available)" >> build-summary.md
+        echo "### Additional Windows Artifacts" >> build-summary.md
         echo "- `prime-calculator-test-status-windows` - Windows test status (if tests skipped)" >> build-summary.md
         echo "" >> build-summary.md
         echo "## 🔧 Usage" >> build-summary.md
         echo "" >> build-summary.md
-        echo "Download the appropriate artifact for your platform and run:" >> build-summary.md
+        echo "Download the appropriate artifact for your platform. Each artifact contains:" >> build-summary.md
+        echo "- `prime_calculator` - Main executable" >> build-summary.md
+        echo "- `prime_calculator_test` - Test suite" >> build-summary.md
+        echo "" >> build-summary.md
+        echo "**Run the main program:**" >> build-summary.md
         echo "```bash" >> build-summary.md
         echo "./prime_calculator <number>" >> build-summary.md
+        echo "```" >> build-summary.md
+        echo "" >> build-summary.md
+        echo "**Run the tests:**" >> build-summary.md
+        echo "```bash" >> build-summary.md
+        echo "./prime_calculator_test" >> build-summary.md
         echo "```" >> build-summary.md
         echo "" >> build-summary.md
         echo "## 📊 Test Results" >> build-summary.md
