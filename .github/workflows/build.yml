@@ -92,15 +92,20 @@ jobs:
       shell: powershell
       run: |
         Write-Host "=== Windows Environment Check ==="
-        Write-Host "CMake version:"
-        cmake --version
-        Write-Host ""
-        Write-Host "Available Visual Studio installations:"
-        Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.Name }
+        try {
+          Write-Host "CMake version:"
+          cmake --version
+        } catch {
+          Write-Host "CMake not found or error occurred"
+        }
         Write-Host ""
         Write-Host "Current directory: $(Get-Location)"
         Write-Host "Available tools:"
-        Get-Command cmake, git, cl | ForEach-Object { Write-Host $_.Name }
+        try {
+          Get-Command cmake, git | ForEach-Object { Write-Host $_.Name }
+        } catch {
+          Write-Host "Error checking available tools"
+        }
         Write-Host "================================"
 
     - name: Install Google Test (Windows)
@@ -114,13 +119,13 @@ jobs:
         } else {
           Write-Host "vcpkg already installed at C:\vcpkg"
         }
-        
+
         Write-Host "Installing Google Test..."
         C:\vcpkg\vcpkg install googletest:x64-windows
-        
+
         Write-Host "Integrating vcpkg..."
         C:\vcpkg\vcpkg integrate install
-        
+
         Write-Host "Checking if Google Test is available..."
         if (Test-Path "C:\vcpkg\installed\x64-windows\include\gtest") {
           Write-Host "Google Test installed successfully"
@@ -164,8 +169,6 @@ jobs:
         path: |
           build/bin/Release/prime_calculator.exe
           build/bin/Release/prime_calculator_test.exe
-          build/bin/Release/prime_calculator.exe
-          build/bin/Release/prime_calculator_test.exe
         retention-days: 30
 
     - name: Upload test artifacts
@@ -173,7 +176,6 @@ jobs:
       with:
         name: prime-calculator-test-windows-latest-msvc
         path: |
-          build/bin/Release/prime_calculator_test.exe
           build/bin/Release/prime_calculator_test.exe
         retention-days: 30
 
