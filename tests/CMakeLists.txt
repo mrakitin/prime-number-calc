@@ -3,7 +3,7 @@ find_package(GTest QUIET)
 
 if(GTest_FOUND)
     message(STATUS "Google Test found, building tests")
-    
+
     # Include directories for tests
     include_directories(../include)
 

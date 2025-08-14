@@ -172,7 +172,7 @@ jobs:
         # Set the toolchain file path directly
         $toolchain = "C:\vcpkg\scripts\buildsystems\vcpkg.cmake"
         Write-Host "Using toolchain file: $toolchain"
-        
+
         # Check if we should skip tests
         if ($env:SKIP_TESTS -eq "true" -or $env:BUILD_TESTING -eq "OFF") {
           Write-Host "Building without tests due to Google Test unavailability"
@@ -199,21 +199,37 @@ jobs:
           ctest --output-on-failure -C Release
         }
 
+    - name: Create test status file
+      shell: powershell
+      if: env.SKIP_TESTS == 'true'
+      run: |
+        "Tests were skipped due to Google Test unavailability on Windows" | Out-File -FilePath "test-status.txt" -Encoding UTF8
+        Write-Host "Created test status file indicating tests were skipped"
+
     - name: Upload binary artifacts
       uses: actions/upload-artifact@v4
       with:
         name: prime-calculator-windows-latest-msvc
         path: |
           build/bin/Release/prime_calculator.exe
-          build/bin/Release/prime_calculator_test.exe
         retention-days: 30
 
     - name: Upload test artifacts
       uses: actions/upload-artifact@v4
+      if: env.SKIP_TESTS != 'true'
       with:
         name: prime-calculator-test-windows-latest-msvc
         path: |
           build/bin/Release/prime_calculator_test.exe
+        retention-days: 30
+
+    - name: Upload test status
+      uses: actions/upload-artifact@v4
+      if: env.SKIP_TESTS == 'true'
+      with:
+        name: prime-calculator-test-status-windows
+        path: |
+          test-status.txt
         retention-days: 30
 
   build-summary:
@@ -235,27 +251,28 @@ jobs:
         echo "" >> build-summary.md
         echo "## ✅ Build Status" >> build-summary.md
         echo "" >> build-summary.md
-        echo "All platforms built and tested successfully!" >> build-summary.md
+        echo "All platforms built successfully!" >> build-summary.md
         echo "" >> build-summary.md
         echo "## 🖥️ Supported Platforms" >> build-summary.md
         echo "" >> build-summary.md
-        echo "- **Ubuntu** (GCC & Clang)" >> build-summary.md
-        echo "- **macOS** (Clang)" >> build-summary.md
-        echo "- **Windows** (MSVC)" >> build-summary.md
+        echo "- **Ubuntu** (GCC & Clang) - Full build with tests" >> build-summary.md
+        echo "- **macOS** (Clang) - Full build with tests" >> build-summary.md
+        echo "- **Windows** (MSVC) - Build with conditional testing" >> build-summary.md
         echo "" >> build-summary.md
         echo "## 📦 Available Artifacts" >> build-summary.md
         echo "" >> build-summary.md
         echo "### Main Program" >> build-summary.md
-        echo "- `prime-calculator-ubuntu-latest-gcc`" >> build-summary.md
-        echo "- `prime-calculator-ubuntu-latest-clang`" >> build-summary.md
-        echo "- `prime-calculator-macos-latest-clang`" >> build-summary.md
-        echo "- `prime-calculator-windows-latest-msvc`" >> build-summary.md
+        echo "- `prime-calculator-ubuntu-latest-gcc` - Linux GCC build" >> build-summary.md
+        echo "- `prime-calculator-ubuntu-latest-clang` - Linux Clang build" >> build-summary.md
+        echo "- `prime-calculator-macos-latest-clang` - macOS build" >> build-summary.md
+        echo "- `prime-calculator-windows-latest-msvc` - Windows build" >> build-summary.md
         echo "" >> build-summary.md
         echo "### Test Suite" >> build-summary.md
-        echo "- `prime-calculator-test-ubuntu-latest-gcc`" >> build-summary.md
-        echo "- `prime-calculator-test-ubuntu-latest-clang`" >> build-summary.md
-        echo "- `prime-calculator-test-macos-latest-clang`" >> build-summary.md
-        echo "- `prime-calculator-test-windows-latest-msvc`" >> build-summary.md
+        echo "- `prime-calculator-test-ubuntu-latest-gcc` - Linux GCC tests" >> build-summary.md
+        echo "- `prime-calculator-test-ubuntu-latest-clang` - Linux Clang tests" >> build-summary.md
+        echo "- `prime-calculator-test-macos-latest-clang` - macOS tests" >> build-summary.md
+        echo "- `prime-calculator-test-windows-latest-msvc` - Windows tests (if available)" >> build-summary.md
+        echo "- `prime-calculator-test-status-windows` - Windows test status (if tests skipped)" >> build-summary.md
         echo "" >> build-summary.md
         echo "## 🔧 Usage" >> build-summary.md
         echo "" >> build-summary.md
@@ -266,7 +283,14 @@ jobs:
         echo "" >> build-summary.md
         echo "## 📊 Test Results" >> build-summary.md
         echo "" >> build-summary.md
-        echo "All tests passed on all platforms! 🎉" >> build-summary.md
+        echo "**Linux & macOS**: All tests passed! 🎉" >> build-summary.md
+        echo "**Windows**: Tests conditionally enabled based on Google Test availability" >> build-summary.md
+        echo "" >> build-summary.md
+        echo "## 🚨 Notes" >> build-summary.md
+        echo "" >> build-summary.md
+        echo "- Windows builds may skip tests if Google Test is unavailable" >> build-summary.md
+        echo "- Main program functionality is always available on all platforms" >> build-summary.md
+        echo "- Test artifacts are only uploaded when tests are successfully built" >> build-summary.md
 
     - name: Upload build summary
       uses: actions/upload-artifact@v4
