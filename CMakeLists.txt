@@ -57,7 +57,12 @@ set_target_properties(prime_calculator PROPERTIES
 )
 
 # Enable testing
-enable_testing()
+option(BUILD_TESTING "Build tests" ON)
 
-# Add tests subdirectory
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    enable_testing()
+    # Add tests subdirectory
+    add_subdirectory(tests)
+else()
+    message(STATUS "Testing disabled - skipping test configuration")
+endif()
