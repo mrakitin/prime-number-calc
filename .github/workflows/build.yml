@@ -211,7 +211,7 @@ jobs:
       run: |
         cd build
         cmake --build . --config Release
-        
+
         # Debug: Show the actual output directory structure
         Write-Host "=== Build Output Directory Structure ==="
         Write-Host "Current directory: $(Get-Location)"
