@@ -18,9 +18,14 @@ jobs:
           - name: Ubuntu Clang
             runs-on: ubuntu-latest
             compiler: clang
-          - name: macOS Clang
-            runs-on: macos-latest
+          - name: macOS Intel (x86_64)
+            runs-on: macos-13
             compiler: clang
+            arch: x86_64
+          - name: macOS Apple Silicon (ARM64)
+            runs-on: macos-14
+            compiler: clang
+            arch: arm64
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.runs-on }}
@@ -36,9 +41,21 @@ jobs:
         sudo apt-get install -y build-essential cmake libgtest-dev
 
     - name: Install dependencies (macOS)
-      if: matrix.runs-on == 'macos-latest'
+      if: contains(matrix.runs-on, 'macos')
       run: |
+        # Install Rosetta 2 for Intel compatibility on Apple Silicon
+        if [ "${{ matrix.arch }}" = "arm64" ]; then
+          echo "Installing Rosetta 2 for Intel compatibility..."
+          sudo softwareupdate --install-rosetta --agree-to-license
+        fi
+
+        # Install dependencies
         brew install cmake googletest
+
+        # Show architecture info
+        echo "Target architecture: ${{ matrix.arch }}"
+        echo "System architecture: $(uname -m)"
+        echo "CMake version: $(cmake --version)"
 
     - name: Set up build environment
       run: |
@@ -52,7 +69,14 @@ jobs:
           export CC=clang
           export CXX=clang++
         fi
-        cmake .. -DCMAKE_BUILD_TYPE=Release
+
+        # Set architecture-specific flags for macOS
+        if [[ "${{ matrix.runs-on }}" == macos* ]]; then
+          echo "Configuring for macOS architecture: ${{ matrix.arch }}"
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="${{ matrix.arch }}"
+        else
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+        fi
 
     - name: Build project
       run: |
@@ -67,7 +91,7 @@ jobs:
     - name: Upload binary artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: prime-calculator-${{ matrix.runs-on }}-${{ matrix.compiler }}
+        name: prime-calculator-${{ matrix.runs-on }}-${{ matrix.compiler }}-${{ matrix.arch }}
         path: |
           build/bin/prime_calculator*
         retention-days: 30
@@ -75,7 +99,7 @@ jobs:
     - name: Upload test artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: prime-calculator-test-${{ matrix.runs-on }}-${{ matrix.compiler }}
+        name: prime-calculator-test-${{ matrix.runs-on }}-${{ matrix.compiler }}-${{ matrix.arch }}
         path: |
           build/bin/prime_calculator_test*
         retention-days: 30
@@ -256,7 +280,8 @@ jobs:
         echo "## 🖥️ Supported Platforms" >> build-summary.md
         echo "" >> build-summary.md
         echo "- **Ubuntu** (GCC & Clang) - Full build with tests" >> build-summary.md
-        echo "- **macOS** (Clang) - Full build with tests" >> build-summary.md
+        echo "- **macOS Intel** (Clang, x86_64) - Full build with tests" >> build-summary.md
+        echo "- **macOS Apple Silicon** (Clang, ARM64) - Full build with tests" >> build-summary.md
         echo "- **Windows** (MSVC) - Build with conditional testing" >> build-summary.md
         echo "" >> build-summary.md
         echo "## 📦 Available Artifacts" >> build-summary.md
@@ -264,13 +289,15 @@ jobs:
         echo "### Main Program" >> build-summary.md
         echo "- `prime-calculator-ubuntu-latest-gcc` - Linux GCC build" >> build-summary.md
         echo "- `prime-calculator-ubuntu-latest-clang` - Linux Clang build" >> build-summary.md
-        echo "- `prime-calculator-macos-latest-clang` - macOS build" >> build-summary.md
+        echo "- `prime-calculator-macos-13-clang-x86_64` - macOS Intel build" >> build-summary.md
+        echo "- `prime-calculator-macos-14-clang-arm64` - macOS Apple Silicon build" >> build-summary.md
         echo "- `prime-calculator-windows-latest-msvc` - Windows build" >> build-summary.md
         echo "" >> build-summary.md
         echo "### Test Suite" >> build-summary.md
         echo "- `prime-calculator-test-ubuntu-latest-gcc` - Linux GCC tests" >> build-summary.md
         echo "- `prime-calculator-test-ubuntu-latest-clang` - Linux Clang tests" >> build-summary.md
-        echo "- `prime-calculator-test-macos-latest-clang` - macOS tests" >> build-summary.md
+        echo "- `prime-calculator-test-macos-13-clang-x86_64` - macOS Intel tests" >> build-summary.md
+        echo "- `prime-calculator-test-macos-14-clang-arm64` - macOS Apple Silicon tests" >> build-summary.md
         echo "- `prime-calculator-test-windows-latest-msvc` - Windows tests (if available)" >> build-summary.md
         echo "- `prime-calculator-test-status-windows` - Windows test status (if tests skipped)" >> build-summary.md
         echo "" >> build-summary.md
