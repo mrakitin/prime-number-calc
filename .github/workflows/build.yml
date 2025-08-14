@@ -150,11 +150,12 @@ jobs:
           Write-Host "Google Test installed successfully in x64-windows"
           $gtestFound = $true
         }
-        
+
         if (-not $gtestFound) {
           Write-Host "Google Test installation failed, will try to build without it"
           Write-Host "Setting flag to skip tests on Windows"
           $env:SKIP_TESTS = "true"
+          $env:BUILD_TESTING = "OFF"
         }
 
     - name: Set up build environment
@@ -173,7 +174,7 @@ jobs:
         Write-Host "Using toolchain file: $toolchain"
         
         # Check if we should skip tests
-        if ($env:SKIP_TESTS -eq "true") {
+        if ($env:SKIP_TESTS -eq "true" -or $env:BUILD_TESTING -eq "OFF") {
           Write-Host "Building without tests due to Google Test unavailability"
           cmake .. -DCMAKE_TOOLCHAIN_FILE="$toolchain" -DBUILD_TESTING=OFF
         } else {

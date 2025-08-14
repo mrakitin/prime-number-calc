@@ -63,6 +63,7 @@ if(BUILD_TESTING)
     enable_testing()
     # Add tests subdirectory
     add_subdirectory(tests)
+    message(STATUS "Testing enabled - configuring test targets")
 else()
     message(STATUS "Testing disabled - skipping test configuration")
 endif()
